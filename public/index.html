@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aditya-L1 Solar Flare Forecasting Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .status-critical { background-color: #f87171; }
+        .status-warning { background-color: #fbbf24; }
+        .status-high { background-color: #f97316; }
+        .status-storm { background-color: #3b82f6; }
+        .status-watch { background-color: #10b981; }
+        .status-nominal { background-color: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
+            Aditya-L1 Solar Flare Forecasting Dashboard
+        </h1>
+
+        <!-- Latest Status Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Latest Status</h2>
+            <div id="latest-status" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">Predicted Class</p>
+                    <p id="predicted-class" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">Flare Probability</p>
+                    <p id="flare-prob" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">X-Class Probability</p>
+                    <p id="x-prob" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">CME Probability</p>
+                    <p id="cme-prob" class="text-2xl font-bold">-</p>
+                </div>
+            </div>
+
+            <div id="alert-section" class="mt-6">
+                <h3 class="text-xl font-semibold mb-3">Active Alerts</h3>
+                <div id="alerts-list" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">Probability History</h2>
+                <canvas id="probChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">Class Distribution</h2>
+                <canvas id="classChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Predictions Table -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Recent Predictions</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Flare %</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">X-Class %</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CME %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictions-table" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let probChart = null;
+        let classChart = null;
+
+        async function updateDashboard() {
+            // Get latest data
+            const latestRes = await fetch('/api/latest');
+            const latest = await latestRes.json();
+
+            if (latest.prediction) {
+                document.getElementById('predicted-class').textContent = latest.prediction.predicted_class;
+                document.getElementById('flare-prob').textContent = (latest.prediction.flare_probability * 100).toFixed(1) + '%';
+                document.getElementById('x-prob').textContent = (latest.prediction.x_class_probability * 100).toFixed(1) + '%';
+                document.getElementById('cme-prob').textContent = (latest.prediction.cme_probability * 100).toFixed(1) + '%';
+            }
+
+            // Update alerts
+            const alertsList = document.getElementById('alerts-list');
+            if (latest.alerts && latest.alerts.length > 0) {
+                alertsList.innerHTML = latest.alerts.map(alert => {
+                    let severityClass = 'status-nominal';
+                    if (alert.severity === 'CRITICAL') severityClass = 'status-critical';
+                    else if (alert.severity === 'WARNING') severityClass = 'status-warning';
+                    else if (alert.severity === 'HIGH RISK') severityClass = 'status-high';
+                    else if (alert.severity === 'STORM WATCH') severityClass = 'status-storm';
+                    else if (alert.severity === 'WATCH') severityClass = 'status-watch';
+
+                    return `
+                        <div class="${severityClass} text-white p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">${alert.severity}</span>
+                                <span class="text-sm opacity-80">${new Date(alert.alert_time).toLocaleString()}</span>
+                            </div>
+                            <p class="mt-1 text-sm">${alert.message}</p>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                alertsList.innerHTML = '<p class="text-gray-500">No active alerts - conditions nominal</p>';
+            }
+
+            // Get recent predictions for charts and table
+            const predRes = await fetch('/api/predictions');
+            const predictions = await predRes.json();
+
+            if (predictions.length > 0) {
+                updateProbChart(predictions);
+                updateClassChart(predictions);
+                updateTable(predictions);
+            }
+        }
+
+        function updateProbChart(predictions) {
+            const labels = predictions.reverse().map(p => new Date(p.obs_time).toLocaleTimeString());
+            const dataFlare = predictions.map(p => (p.flare_probability * 100).toFixed(1));
+            const dataX = predictions.map(p => (p.x_class_probability * 100).toFixed(1));
+            const dataCME = predictions.map(p => (p.cme_probability * 100).toFixed(1));
+
+            const ctx = document.getElementById('probChart').getContext('2d');
+
+            if (probChart) probChart.destroy();
+
+            probChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Flare Probability',
+                            data: dataFlare,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'X-Class Probability',
+                            data: dataX,
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'CME Probability',
+                            data: dataCME,
+                            borderColor: '#f97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateClassChart(predictions) {
+            const classes = { 'A': 0, 'B': 0, 'C': 0, 'M': 0, 'X': 0 };
+            predictions.forEach(p => {
+                if (classes[p.predicted_class] !== undefined) {
+                    classes[p.predicted_class]++;
+                }
+            });
+
+            const ctx = document.getElementById('classChart').getContext('2d');
+
+            if (classChart) classChart.destroy();
+
+            classChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['A', 'B', 'C', 'M', 'X'],
+                    datasets: [{
+                        data: [classes['A'], classes['B'], classes['C'], classes['M'], classes['X']],
+                        backgroundColor: [
+                            '#10b981',
+                            '#3b82f6',
+                            '#fbbf24',
+                            '#f97316',
+                            '#ef4444'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+        function updateTable(predictions) {
+            const tbody = document.getElementById('predictions-table');
+            tbody.innerHTML = predictions.slice(0, 20).map(p => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${new Date(p.obs_time).toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span class="px-2 py-1 rounded text-white ${
+                            p.predicted_class === 'X' ? 'bg-red-600' :
+                            p.predicted_class === 'M' ? 'bg-orange-500' :
+                            p.predicted_class === 'C' ? 'bg-yellow-500' :
+                            p.predicted_class === 'B' ? 'bg-blue-500' : 'bg-green-500'
+                        }">
+                            ${p.predicted_class}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${(p.flare_probability * 100).toFixed(1)}%
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${(p.x_class_probability * 100).toFixed(1)}%
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${(p.cme_probability * 100).toFixed(1)}%
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Initial load
+        updateDashboard();
+
+        // Update every 30 seconds
+        setInterval(updateDashboard, 30000);
+    </script>
+</body>
+</html>

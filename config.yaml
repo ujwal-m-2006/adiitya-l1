@@ -1,0 +1,105 @@
+# ============================================================
+# Aditya-L1 Solar Flare Forecasting Pipeline — Config
+# ISRO Space Weather Monitoring Platform
+# ============================================================
+
+pipeline:
+  name: "aditya_l1_sff_pipeline"
+  version: "1.0.0"
+  cron_schedule: "*/5 * * * *"
+  retrain_schedule: "0 2 * * *"
+  log_level: "INFO"
+  max_retries: 3
+  retry_delay_seconds: 30
+
+data:
+  pradan:
+    base_url: "https://pradan.issdc.gov.in/pradan/secured"
+    username: "${PRADAN_USERNAME}"
+    password: "${PRADAN_PASSWORD}"
+    instruments: ["SoLEXS", "HEL1OS"]
+    data_level: "L1"
+    format: "FITS"
+    look_back_hours: "auto"  # Can be number of hours or "auto"
+    look_back_auto_min_hours: 24
+    look_back_auto_max_hours: 720
+
+  noaa_fallback:
+    enabled: true
+    xray_6h:   "https://services.swpc.noaa.gov/json/goes/primary/xrays-6-hour.json"
+    xray_1d:   "https://services.swpc.noaa.gov/json/goes/primary/xrays-1-day.json"
+    flares_7d: "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json"
+    kp_index:  "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
+    scales:    "https://services.swpc.noaa.gov/products/noaa-scales.json"
+    solar_wind_plasma: "https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json"
+    solar_wind_mag:    "https://services.swpc.noaa.gov/products/solar-wind/mag-2-hour.json"
+
+  storage:
+    raw_dir:       "data/raw"
+    processed_dir: "data/processed"
+    features_dir:  "data/features"
+    archive_days:  90
+
+instruments:
+  SoLEXS:
+    bands:
+      - {name: "band_1_8A",   range_angstrom: [1.0, 8.0],  goes_equivalent: true,  unit: "W/m2"}
+      - {name: "band_0_4A",   range_angstrom: [0.5, 4.0],  goes_equivalent: true,  unit: "W/m2"}
+      - {name: "band_8_20A",  range_angstrom: [8.0, 20.0], goes_equivalent: false, unit: "W/m2"}
+  HEL1OS:
+    bands:
+      - {name: "band_20_60keV",    range_keV: [20, 60],    unit: "counts/s"}
+      - {name: "band_60_100keV",   range_keV: [60, 100],   unit: "counts/s"}
+      - {name: "band_100_300keV",  range_keV: [100, 300],  unit: "counts/s"}
+      - {name: "band_300_1000keV", range_keV: [300, 1000], unit: "counts/s"}
+
+preprocessing:
+  missing_value_strategy: "linear_interpolation"
+  max_gap_minutes: 10
+  outlier_sigma_threshold: 4.0
+  normalization: "log10_minmax"
+  sync_tolerance_seconds: 30
+  duplicate_window_seconds: 10
+
+features:
+  temporal_window_minutes: 60
+  rolling_windows: [5, 15, 30, 60]
+
+models:
+  sequence_length: 60
+  feature_dim: 17
+  ensemble_weights:
+    LSTM: 0.30
+    GRU: 0.25
+    Transformer: 0.30
+    XGBoost: 0.15
+  LSTM:        {hidden_size: 128, num_layers: 3, dropout: 0.2, model_path: "models/lstm_v1.pt"}
+  GRU:         {hidden_size: 128, num_layers: 2, dropout: 0.2, model_path: "models/gru_v1.pt"}
+  Transformer: {d_model: 64, nhead: 8, num_encoder_layers: 4, dim_feedforward: 256, dropout: 0.1, model_path: "models/transformer_v1.pt"}
+  XGBoost:     {n_estimators: 500, max_depth: 6, learning_rate: 0.05, subsample: 0.8, colsample_bytree: 0.8, model_path: "models/xgboost_v1.json"}
+
+alerts:
+  thresholds:
+    m_class_warning_pct: 70
+    x_class_critical_pct: 50
+    cme_high_risk_pct: 60
+    geomag_storm_pct: 55
+    flare_watch_pct: 40
+  channels:
+    - {type: "log",     enabled: true}
+    - {type: "email",   enabled: false, recipients: ["spaceweather@isro.gov.in"], smtp_host: "${SMTP_HOST}"}
+    - {type: "webhook", enabled: false, url: "${ALERT_WEBHOOK_URL}"}
+
+database:
+  host: "${DB_HOST}"
+  port: 5432
+  name: "${DB_NAME}"
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  pool_size: 5
+  tables:
+    raw_observations:   "solexs_hel1os_raw"
+    processed_features: "solar_features"
+    predictions:        "flare_predictions"
+    alerts:             "flare_alerts"
+    pipeline_runs:      "pipeline_runs"
