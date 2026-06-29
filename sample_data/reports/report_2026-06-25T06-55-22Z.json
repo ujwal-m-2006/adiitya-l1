@@ -1,0 +1,83 @@
+{
+  "run_id": "RUN-24FDD234",
+  "timestamp": "2026-06-25T06:55:12Z",
+  "pipeline_version": "1.0.0",
+  "elapsed_seconds": 11.46,
+  "pipeline_status": "SUCCESS",
+  "data_acquisition": {
+    "source_used": "PRADAN_L1_FITS",
+    "data_points_processed": 13,
+    "status": "SUCCESS"
+  },
+  "data_quality": {
+    "records_validated": 13,
+    "records_passed": 4,
+    "warnings": []
+  },
+  "data_points_processed": 13,
+  "flare_probability": "72.0%",
+  "predicted_flare_class": "C",
+  "predicted_flux_class": "C1.2",
+  "class_probabilities": {
+    "A": "0.2%",
+    "B": "27.8%",
+    "C": "71.8%",
+    "M": "0.1%",
+    "X": "0.1%"
+  },
+  "cme_probability": "10.9%",
+  "geomagnetic_risk": "MODERATE (G2)",
+  "geomagnetic_risk_score": "18.8%",
+  "confidence_score": "61.5%",
+  "estimated_onset_utc": "2026-06-25T07:10:21Z",
+  "onset_window_minutes": [
+    7,
+    22
+  ],
+  "ai_ensemble": {
+    "models": [
+      "LSTM",
+      "GRU",
+      "Transformer",
+      "XGBoost"
+    ],
+    "weights": {
+      "LSTM": 0.3,
+      "GRU": 0.25,
+      "Transformer": 0.3,
+      "XGBoost": 0.15
+    }
+  },
+  "alert_status": "WATCH",
+  "active_alerts": [
+    {
+      "severity": "WATCH",
+      "message": "Flare probability 72.0% \u2014 general watch active."
+    },
+    {
+      "severity": "WATCH",
+      "message": "Flare probability 72.2% \u2014 general watch active."
+    },
+    {
+      "severity": "WATCH",
+      "message": "Flare probability 72.1% \u2014 general watch active."
+    },
+    {
+      "severity": "WATCH",
+      "message": "Flare probability 72.2% \u2014 general watch active."
+    }
+  ],
+  "recommended_action": "WATCH: Monitor more frequently. No satellite action needed yet. Brief on-call space weather duty officer.",
+  "threshold_evaluation": {
+    "x_class_critical_50pct": false,
+    "m_class_warning_70pct": false,
+    "cme_high_risk_60pct": false,
+    "geomag_storm_55pct": false
+  },
+  "system_health": {
+    "pipeline_ok": true,
+    "prediction_id": "PRED-4FE44719",
+    "db_write": "SIMULATED",
+    "dashboard": "PAYLOAD_READY"
+  }
+}

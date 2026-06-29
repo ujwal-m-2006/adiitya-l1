@@ -26,23 +26,44 @@ cfg = load_config()
 
 
 def get_latest_raw_data_file():
+    # First try real data directory
     raw_dir = project_root / "data" / "raw"
-    if not raw_dir.exists():
-        return None
-    raw_files = list(raw_dir.glob("raw_*.json"))
-    if not raw_files:
-        return None
-    return sorted(raw_files, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+    if raw_dir.exists():
+        raw_files = list(raw_dir.glob("raw_*.json"))
+        if raw_files:
+            return sorted(raw_files, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+    # Fallback to sample data
+    sample_raw_dir = project_root / "sample_data" / "raw"
+    if sample_raw_dir.exists():
+        raw_files = list(sample_raw_dir.glob("raw_*.json"))
+        if raw_files:
+            return sorted(raw_files, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+    return None
 
 
 def load_all_reports():
-    reports_dir = project_root / "data" / "reports"
     reports = []
+    # First try real data directory
+    reports_dir = project_root / "data" / "reports"
     if reports_dir.exists():
         for report_file in sorted(reports_dir.glob("report_*.json"), reverse=True):
-            with open(report_file, "r") as f:
-                report = json.load(f)
-                reports.append(report)
+            try:
+                with open(report_file, "r") as f:
+                    report = json.load(f)
+                    reports.append(report)
+            except Exception:
+                pass
+    # If no real reports, use sample data
+    if not reports:
+        sample_reports_dir = project_root / "sample_data" / "reports"
+        if sample_reports_dir.exists():
+            for report_file in sorted(sample_reports_dir.glob("report_*.json"), reverse=True):
+                try:
+                    with open(report_file, "r") as f:
+                        report = json.load(f)
+                        reports.append(report)
+                except Exception:
+                    pass
     return reports
 
 
