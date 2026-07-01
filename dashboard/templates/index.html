@@ -338,13 +338,28 @@
                             type: 'logarithmic',
                             title: {
                                 display: true,
-                                text: 'Flux (W/m²)'
+                                text: 'Watts · m⁻²'
+                            },
+                            min: 1e-9,
+                            max: 1e-2,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 1e-9) return '10⁻⁹';
+                                    if (value === 1e-8) return '10⁻⁸';
+                                    if (value === 1e-7) return '10⁻⁷';
+                                    if (value === 1e-6) return '10⁻⁶';
+                                    if (value === 1e-5) return '10⁻⁵';
+                                    if (value === 1e-4) return '10⁻⁴';
+                                    if (value === 1e-3) return '10⁻³';
+                                    if (value === 1e-2) return '10⁻²';
+                                    return '';
+                                }
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: 'Time'
+                                text: 'Universal Time'
                             }
                         }
                     }
