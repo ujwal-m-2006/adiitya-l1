@@ -1486,7 +1486,15 @@
           4.67
         ]
       },
-      "solar_wind": null,
+      "solar_wind": {
+        "source": "NOAA_SWPC_SOLAR_WIND",
+        "obs_time": "2026-07-01T05:05:00Z",
+        "speed_km_s": 412.3,
+        "density_n_cc": 8.75,
+        "temperature_K": 124500,
+        "imf_bz_nT": -2.1,
+        "imf_bt_nT": 6.8
+      },
       "recent_flares": [
         {
           "begin_time": "2026-06-30T09:32:00Z",
