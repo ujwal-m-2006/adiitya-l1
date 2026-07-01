@@ -306,7 +306,12 @@
             const ctx = document.getElementById('goesXrayChart').getContext('2d');
             if (goesXrayChart) goesXrayChart.destroy();
 
-            const labels = xray.band_1_8A.timestamps.map(t => new Date(t).toLocaleTimeString());
+            const labels = xray.band_1_8A.timestamps.map(t => {
+                const d = new Date(t);
+                const hh = String(d.getUTCHours()).padStart(2, '0');
+                const mm = String(d.getUTCMinutes()).padStart(2, '0');
+                return `${hh}:${mm}`;
+            });
 
             goesXrayChart = new Chart(ctx, {
                 type: 'line',
@@ -368,7 +373,12 @@
         }
 
         function updateProbChart(predictions) {
-            const labels = predictions.reverse().map(p => new Date(p.obs_time).toLocaleTimeString());
+            const labels = predictions.reverse().map(p => {
+                const d = new Date(p.obs_time);
+                const hh = String(d.getUTCHours()).padStart(2, '0');
+                const mm = String(d.getUTCMinutes()).padStart(2, '0');
+                return `${hh}:${mm}`;
+            });
             const dataFlare = predictions.map(p => (p.flare_probability * 100).toFixed(1));
             const dataX = predictions.map(p => (p.x_class_probability * 100).toFixed(1));
             const dataCME = predictions.map(p => (p.cme_probability * 100).toFixed(1));
