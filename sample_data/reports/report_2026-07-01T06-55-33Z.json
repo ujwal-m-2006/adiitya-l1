@@ -1,0 +1,71 @@
+{
+  "run_id": "RUN-BE3CDC17",
+  "timestamp": "2026-07-01T06:55:21Z",
+  "pipeline_version": "1.0.0",
+  "elapsed_seconds": 3.96,
+  "pipeline_status": "SUCCESS",
+  "data_acquisition": {
+    "source_used": "NOAA_SWPC_FALLBACK",
+    "data_points_processed": 1,
+    "status": "SUCCESS"
+  },
+  "data_quality": {
+    "records_validated": 1,
+    "records_passed": 1,
+    "warnings": []
+  },
+  "data_points_processed": 1,
+  "flare_probability": "71.9%",
+  "predicted_flare_class": "C",
+  "predicted_flux_class": "C3.7",
+  "class_probabilities": {
+    "A": "0.1%",
+    "B": "28.0%",
+    "C": "71.7%",
+    "M": "0.1%",
+    "X": "0.1%"
+  },
+  "cme_probability": "10.9%",
+  "geomagnetic_risk": "QUIET",
+  "geomagnetic_risk_score": "15.0%",
+  "confidence_score": "61.5%",
+  "estimated_onset_utc": "2026-07-01T07:10:21Z",
+  "onset_window_minutes": [
+    7,
+    22
+  ],
+  "ai_ensemble": {
+    "models": [
+      "LSTM",
+      "GRU",
+      "Transformer",
+      "XGBoost"
+    ],
+    "weights": {
+      "LSTM": 0.3,
+      "GRU": 0.25,
+      "Transformer": 0.3,
+      "XGBoost": 0.15
+    }
+  },
+  "alert_status": "WATCH",
+  "active_alerts": [
+    {
+      "severity": "WATCH",
+      "message": "Flare probability 71.9% \u2014 general watch active."
+    }
+  ],
+  "recommended_action": "WATCH: Monitor more frequently. No satellite action needed yet. Brief on-call space weather duty officer.",
+  "threshold_evaluation": {
+    "x_class_critical_50pct": false,
+    "m_class_warning_70pct": false,
+    "cme_high_risk_60pct": false,
+    "geomag_storm_55pct": false
+  },
+  "system_health": {
+    "pipeline_ok": true,
+    "prediction_id": "PRED-4479AE25",
+    "db_write": "POSTGRES",
+    "dashboard": "PAYLOAD_READY"
+  }
+}
