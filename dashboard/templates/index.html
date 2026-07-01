@@ -1,186 +1,185 @@
-
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-    &lt;title&gt;Aditya-L1 Solar Flare Forecasting Dashboard&lt;/title&gt;
-    &lt;link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"&gt;
-    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
-    &lt;style&gt;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aditya-L1 Solar Flare Forecasting Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
         .status-critical { background-color: #f87171; }
         .status-warning { background-color: #fbbf24; }
         .status-high { background-color: #f97316; }
         .status-storm { background-color: #3b82f6; }
         .status-watch { background-color: #10b981; }
         .status-nominal { background-color: #10b981; }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body class="bg-gray-100 min-h-screen"&gt;
-    &lt;div class="container mx-auto px-4 py-8"&gt;
-        &lt;h1 class="text-4xl font-bold text-center text-gray-800 mb-8"&gt;
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
             Aditya-L1 Solar Flare Forecasting Dashboard
-        &lt;/h1&gt;
+        </h1>
 
-        &lt;!-- Latest Status Card --&gt;
-        &lt;div class="bg-white rounded-lg shadow-lg p-6 mb-8"&gt;
-            &lt;h2 class="text-2xl font-semibold mb-4"&gt;Latest Status&lt;/h2&gt;
-            &lt;div id="latest-status" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"&gt;
-                &lt;div class="bg-gray-50 p-4 rounded-lg"&gt;
-                    &lt;p class="text-gray-500 text-sm"&gt;Predicted Class&lt;/p&gt;
-                    &lt;p id="predicted-class" class="text-2xl font-bold"&gt;-&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;div class="bg-gray-50 p-4 rounded-lg"&gt;
-                    &lt;p class="text-gray-500 text-sm"&gt;Flare Probability&lt;/p&gt;
-                    &lt;p id="flare-prob" class="text-2xl font-bold"&gt;-&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;div class="bg-gray-50 p-4 rounded-lg"&gt;
-                    &lt;p class="text-gray-500 text-sm"&gt;X-Class Probability&lt;/p&gt;
-                    &lt;p id="x-prob" class="text-2xl font-bold"&gt;-&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;div class="bg-gray-50 p-4 rounded-lg"&gt;
-                    &lt;p class="text-gray-500 text-sm"&gt;CME Probability&lt;/p&gt;
-                    &lt;p id="cme-prob" class="text-2xl font-bold"&gt;-&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
+        <!-- Latest Status Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Latest Status</h2>
+            <div id="latest-status" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">Predicted Class</p>
+                    <p id="predicted-class" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">Flare Probability</p>
+                    <p id="flare-prob" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">X-Class Probability</p>
+                    <p id="x-prob" class="text-2xl font-bold">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-500 text-sm">CME Probability</p>
+                    <p id="cme-prob" class="text-2xl font-bold">-</p>
+                </div>
+            </div>
 
-            &lt;div id="alert-section" class="mt-6"&gt;
-                &lt;h3 class="text-xl font-semibold mb-3"&gt;Active Alerts&lt;/h3&gt;
-                &lt;div id="alerts-list" class="space-y-2"&gt;&lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
+            <div id="alert-section" class="mt-6">
+                <h3 class="text-xl font-semibold mb-3">Active Alerts</h3>
+                <div id="alerts-list" class="space-y-2"></div>
+            </div>
+        </div>
 
-        &lt;!-- Raw NOAA Data Verification Section --&gt;
-        &lt;div class="bg-white rounded-lg shadow-lg p-6 mb-8"&gt;
-            &lt;h2 class="text-2xl font-semibold mb-4"&gt;🔍 Raw NOAA Data (for Verification)&lt;/h2&gt;
-            &lt;div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"&gt;
-                &lt;!-- GOES X-ray Flux --&gt;
-                &lt;div class="bg-blue-50 p-4 rounded-lg"&gt;
-                    &lt;h3 class="text-lg font-semibold mb-3 text-blue-800"&gt;GOES X-ray Flux&lt;/h3&gt;
-                    &lt;div class="grid grid-cols-2 gap-3"&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;1–8 Å (Long Band)&lt;/p&gt;
-                            &lt;p id="goes-long" class="text-xl font-bold text-blue-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;0.5–4 Å (Short Band)&lt;/p&gt;
-                            &lt;p id="goes-short" class="text-xl font-bold text-blue-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;60-min Peak (1–8 Å)&lt;/p&gt;
-                            &lt;p id="goes-peak" class="text-xl font-bold text-blue-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;Flux Ratio (Short/Long)&lt;/p&gt;
-                            &lt;p id="goes-ratio" class="text-xl font-bold text-blue-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                    &lt;p id="goes-obs-time" class="text-xs text-gray-500 mt-2"&gt;Observation time: -&lt;/p&gt;
-                &lt;/div&gt;
+        <!-- Raw NOAA Data Verification Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">🔍 Raw NOAA Data (for Verification)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- GOES X-ray Flux -->
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-blue-800">GOES X-ray Flux</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-sm text-gray-600">1–8 Å (Long Band)</p>
+                            <p id="goes-long" class="text-xl font-bold text-blue-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">0.5–4 Å (Short Band)</p>
+                            <p id="goes-short" class="text-xl font-bold text-blue-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">60-min Peak (1–8 Å)</p>
+                            <p id="goes-peak" class="text-xl font-bold text-blue-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Flux Ratio (Short/Long)</p>
+                            <p id="goes-ratio" class="text-xl font-bold text-blue-700">-</p>
+                        </div>
+                    </div>
+                    <p id="goes-obs-time" class="text-xs text-gray-500 mt-2">Observation time: -</p>
+                </div>
 
-                &lt;!-- Solar Wind &amp; Kp Index --&gt;
-                &lt;div class="bg-purple-50 p-4 rounded-lg"&gt;
-                    &lt;h3 class="text-lg font-semibold mb-3 text-purple-800"&gt;Solar Wind &amp; Geomagnetism&lt;/h3&gt;
-                    &lt;div class="grid grid-cols-2 gap-3"&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;Kp Index&lt;/p&gt;
-                            &lt;p id="kp-index" class="text-xl font-bold text-purple-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;Solar Wind Speed&lt;/p&gt;
-                            &lt;p id="sw-speed" class="text-xl font-bold text-purple-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;Solar Wind Density&lt;/p&gt;
-                            &lt;p id="sw-density" class="text-xl font-bold text-purple-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                        &lt;div&gt;
-                            &lt;p class="text-sm text-gray-600"&gt;IMF Bz (nT)&lt;/p&gt;
-                            &lt;p id="imf-bz" class="text-xl font-bold text-purple-700"&gt;-&lt;/p&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                    &lt;p id="sw-obs-time" class="text-xs text-gray-500 mt-2"&gt;Observation time: -&lt;/p&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
+                <!-- Solar Wind & Kp Index -->
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-purple-800">Solar Wind & Geomagnetism</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-sm text-gray-600">Kp Index</p>
+                            <p id="kp-index" class="text-xl font-bold text-purple-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Solar Wind Speed</p>
+                            <p id="sw-speed" class="text-xl font-bold text-purple-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Solar Wind Density</p>
+                            <p id="sw-density" class="text-xl font-bold text-purple-700">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">IMF Bz (nT)</p>
+                            <p id="imf-bz" class="text-xl font-bold text-purple-700">-</p>
+                        </div>
+                    </div>
+                    <p id="sw-obs-time" class="text-xs text-gray-500 mt-2">Observation time: -</p>
+                </div>
+            </div>
 
-            &lt;!-- NOAA Timeseries Graphs --&gt;
-            &lt;div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"&gt;
-                &lt;div class="bg-gray-50 p-4 rounded-lg"&gt;
-                    &lt;h3 class="text-lg font-semibold mb-3 text-gray-800"&gt;GOES X-ray Flux Time Series&lt;/h3&gt;
-                    &lt;canvas id="goesXrayChart"&gt;&lt;/canvas&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
+            <!-- NOAA Timeseries Graphs -->
+            <div class="grid grid-cols-1 gap-6 mb-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">GOES X-ray Flux Time Series</h3>
+                    <canvas id="goesXrayChart"></canvas>
+                </div>
+            </div>
 
-            &lt;!-- Recent Flares List --&gt;
-            &lt;div class="mt-6"&gt;
-                &lt;h3 class="text-lg font-semibold mb-3 text-gray-800"&gt;Recent Flares (NOAA)&lt;/h3&gt;
-                &lt;div id="recent-flares" class="overflow-x-auto"&gt;
-                    &lt;table class="min-w-full divide-y divide-gray-200"&gt;
-                        &lt;thead class="bg-gray-50"&gt;
-                            &lt;tr&gt;
-                                &lt;th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"&gt;Begin Time&lt;/th&gt;
-                                &lt;th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"&gt;Class&lt;/th&gt;
-                                &lt;th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"&gt;Peak Flux&lt;/th&gt;
-                            &lt;/tr&gt;
-                        &lt;/thead&gt;
-                        &lt;tbody id="flares-tbody" class="bg-white divide-y divide-gray-200"&gt;&lt;/tbody&gt;
-                    &lt;/table&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
+            <!-- Recent Flares List -->
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">Recent Flares (NOAA)</h3>
+                <div id="recent-flares" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Begin Time</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Peak Flux</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flares-tbody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
 
-            &lt;!-- Links to NOAA --&gt;
-            &lt;div class="mt-6 pt-4 border-t border-gray-200"&gt;
-                &lt;p class="text-sm text-gray-600 mb-2"&gt;Cross-check with NOAA directly:&lt;/p&gt;
-                &lt;div class="flex flex-wrap gap-3"&gt;
-                    &lt;a href="https://www.swpc.noaa.gov/products/goes-x-ray-flux" target="_blank" rel="noopener noreferrer"
-                       class="text-blue-600 hover:text-blue-800 text-sm font-medium"&gt;
+            <!-- Links to NOAA -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-2">Cross-check with NOAA directly:</p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="https://www.swpc.noaa.gov/products/goes-x-ray-flux" target="_blank" rel="noopener noreferrer"
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         🔗 NOAA GOES X-ray Flux
-                    &lt;/a&gt;
-                    &lt;a href="https://www.swpc.noaa.gov/products/planetary-k-index" target="_blank" rel="noopener noreferrer"
-                       class="text-blue-600 hover:text-blue-800 text-sm font-medium"&gt;
+                    </a>
+                    <a href="https://www.swpc.noaa.gov/products/planetary-k-index" target="_blank" rel="noopener noreferrer"
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         🔗 NOAA Kp Index
-                    &lt;/a&gt;
-                    &lt;a href="https://www.swpc.noaa.gov/products/solar-wind-plasma-magnetometer" target="_blank" rel="noopener noreferrer"
-                       class="text-blue-600 hover:text-blue-800 text-sm font-medium"&gt;
+                    </a>
+                    <a href="https://www.swpc.noaa.gov/products/solar-wind-plasma-magnetometer" target="_blank" rel="noopener noreferrer"
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         🔗 NOAA Solar Wind
-                    &lt;/a&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        &lt;!-- Charts --&gt;
-        &lt;div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"&gt;
-            &lt;div class="bg-white rounded-lg shadow-lg p-6"&gt;
-                &lt;h2 class="text-2xl font-semibold mb-4"&gt;Probability History&lt;/h2&gt;
-                &lt;canvas id="probChart"&gt;&lt;/canvas&gt;
-            &lt;/div&gt;
-            &lt;div class="bg-white rounded-lg shadow-lg p-6"&gt;
-                &lt;h2 class="text-2xl font-semibold mb-4"&gt;Class Distribution&lt;/h2&gt;
-                &lt;canvas id="classChart"&gt;&lt;/canvas&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">Probability History</h2>
+                <canvas id="probChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">Class Distribution</h2>
+                <canvas id="classChart"></canvas>
+            </div>
+        </div>
 
-        &lt;!-- Recent Predictions Table --&gt;
-        &lt;div class="bg-white rounded-lg shadow-lg p-6"&gt;
-            &lt;h2 class="text-2xl font-semibold mb-4"&gt;Recent Predictions&lt;/h2&gt;
-            &lt;div class="overflow-x-auto"&gt;
-                &lt;table class="min-w-full divide-y divide-gray-200"&gt;
-                    &lt;thead class="bg-gray-50"&gt;
-                        &lt;tr&gt;
-                            &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"&gt;Time&lt;/th&gt;
-                            &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"&gt;Class&lt;/th&gt;
-                            &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"&gt;Flare %&lt;/th&gt;
-                            &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"&gt;X-Class %&lt;/th&gt;
-                            &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"&gt;CME %&lt;/th&gt;
-                        &lt;/tr&gt;
-                    &lt;/thead&gt;
-                    &lt;tbody id="predictions-table" class="bg-white divide-y divide-gray-200"&gt;&lt;/tbody&gt;
-                &lt;/table&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
+        <!-- Recent Predictions Table -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Recent Predictions</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Flare %</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">X-Class %</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CME %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictions-table" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    &lt;script&gt;
+    <script>
         let probChart = null;
         let classChart = null;
         let goesXrayChart = null;
@@ -204,8 +203,8 @@
 
             // Update alerts
             const alertsList = document.getElementById('alerts-list');
-            if (latest.alerts &amp;&amp; latest.alerts.length &gt; 0) {
-                alertsList.innerHTML = latest.alerts.map(alert =&gt; {
+            if (latest.alerts && latest.alerts.length > 0) {
+                alertsList.innerHTML = latest.alerts.map(alert => {
                     let severityClass = 'status-nominal';
                     if (alert.severity === 'CRITICAL') severityClass = 'status-critical';
                     else if (alert.severity === 'WARNING') severityClass = 'status-warning';
@@ -214,24 +213,24 @@
                     else if (alert.severity === 'WATCH') severityClass = 'status-watch';
 
                     return `
-                        &lt;div class="${severityClass} text-white p-3 rounded-lg"&gt;
-                            &lt;div class="flex justify-between items-center"&gt;
-                                &lt;span class="font-semibold"&gt;${alert.severity}&lt;/span&gt;
-                                &lt;span class="text-sm opacity-80"&gt;${new Date(alert.alert_time).toLocaleString()}&lt;/span&gt;
-                            &lt;/div&gt;
-                            &lt;p class="mt-1 text-sm"&gt;${alert.message}&lt;/p&gt;
-                        &lt;/div&gt;
+                        <div class="${severityClass} text-white p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">${alert.severity}</span>
+                                <span class="text-sm opacity-80">${new Date(alert.alert_time).toLocaleString()}</span>
+                            </div>
+                            <p class="mt-1 text-sm">${alert.message}</p>
+                        </div>
                     `;
                 }).join('');
             } else {
-                alertsList.innerHTML = '&lt;p class="text-gray-500"&gt;No active alerts - conditions nominal&lt;/p&gt;';
+                alertsList.innerHTML = '<p class="text-gray-500">No active alerts - conditions nominal</p>';
             }
 
             // Get recent predictions for charts and table
             const predRes = await fetch('/api/predictions');
             const predictions = await predRes.json();
 
-            if (predictions.length &gt; 0) {
+            if (predictions.length > 0) {
                 updateProbChart(predictions);
                 updateClassChart(predictions);
                 updateTable(predictions);
@@ -267,7 +266,7 @@
                 document.getElementById('goes-ratio').textContent = record.xray.flux_ratio_short_long ? record.xray.flux_ratio_short_long.toFixed(4) : '-';
             }
 
-            // Kp &amp; Solar Wind
+            // Kp & Solar Wind
             if (record.kp) {
                 document.getElementById('kp-index').textContent = record.kp.kp_index ? record.kp.kp_index.toFixed(2) : '-';
             }
@@ -280,21 +279,21 @@
 
             // Recent flares
             const flaresTbody = document.getElementById('flares-tbody');
-            if (record.recent_flares &amp;&amp; record.recent_flares.length &gt; 0) {
-                flaresTbody.innerHTML = record.recent_flares.map(flare =&gt; {
+            if (record.recent_flares && record.recent_flares.length > 0) {
+                flaresTbody.innerHTML = record.recent_flares.map(flare => {
                     const colorClass = flare.flare_class.startsWith('X') ? 'bg-red-100 text-red-800' :
                                        flare.flare_class.startsWith('M') ? 'bg-orange-100 text-orange-800' :
                                        'bg-yellow-100 text-yellow-800';
                     return `
-                        &lt;tr&gt;
-                            &lt;td class="px-4 py-2 text-sm text-gray-900"&gt;${new Date(flare.begin_time).toLocaleString()}&lt;/td&gt;
-                            &lt;td class="px-4 py-2 text-sm"&gt;&lt;span class="px-2 py-1 rounded font-semibold ${colorClass}"&gt;${flare.flare_class}&lt;/span&gt;&lt;/td&gt;
-                            &lt;td class="px-4 py-2 text-sm text-gray-900"&gt;${formatFlux(flare.peak_flux)}&lt;/td&gt;
-                        &lt;/tr&gt;
+                        <tr>
+                            <td class="px-4 py-2 text-sm text-gray-900">${new Date(flare.begin_time).toLocaleString()}</td>
+                            <td class="px-4 py-2 text-sm"><span class="px-2 py-1 rounded font-semibold ${colorClass}">${flare.flare_class}</span></td>
+                            <td class="px-4 py-2 text-sm text-gray-900">${formatFlux(flare.peak_flux)}</td>
+                        </tr>
                     `;
                 }).join('');
             } else {
-                flaresTbody.innerHTML = '&lt;tr&gt;&lt;td colspan="3" class="px-4 py-2 text-sm text-gray-500"&gt;No recent flares found&lt;/td&gt;&lt;/tr&gt;';
+                flaresTbody.innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-sm text-gray-500">No recent flares found</td></tr>';
             }
         }
 
@@ -307,7 +306,7 @@
             const ctx = document.getElementById('goesXrayChart').getContext('2d');
             if (goesXrayChart) goesXrayChart.destroy();
 
-            const labels = xray.band_1_8A.timestamps.map(t =&gt; new Date(t).toLocaleTimeString());
+            const labels = xray.band_1_8A.timestamps.map(t => new Date(t).toLocaleTimeString());
 
             goesXrayChart = new Chart(ctx, {
                 type: 'line',
@@ -354,10 +353,10 @@
         }
 
         function updateProbChart(predictions) {
-            const labels = predictions.reverse().map(p =&gt; new Date(p.obs_time).toLocaleTimeString());
-            const dataFlare = predictions.map(p =&gt; (p.flare_probability * 100).toFixed(1));
-            const dataX = predictions.map(p =&gt; (p.x_class_probability * 100).toFixed(1));
-            const dataCME = predictions.map(p =&gt; (p.cme_probability * 100).toFixed(1));
+            const labels = predictions.reverse().map(p => new Date(p.obs_time).toLocaleTimeString());
+            const dataFlare = predictions.map(p => (p.flare_probability * 100).toFixed(1));
+            const dataX = predictions.map(p => (p.x_class_probability * 100).toFixed(1));
+            const dataCME = predictions.map(p => (p.cme_probability * 100).toFixed(1));
 
             const ctx = document.getElementById('probChart').getContext('2d');
 
@@ -408,7 +407,7 @@
 
         function updateClassChart(predictions) {
             const classes = { 'A': 0, 'B': 0, 'C': 0, 'M': 0, 'X': 0 };
-            predictions.forEach(p =&gt; {
+            predictions.forEach(p => {
                 if (classes[p.predicted_class] !== undefined) {
                     classes[p.predicted_class]++;
                 }
@@ -441,31 +440,31 @@
 
         function updateTable(predictions) {
             const tbody = document.getElementById('predictions-table');
-            tbody.innerHTML = predictions.slice(0, 20).map(p =&gt; `
-                &lt;tr&gt;
-                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"&gt;
+            tbody.innerHTML = predictions.slice(0, 20).map(p => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${new Date(p.obs_time).toLocaleString()}
-                    &lt;/td&gt;
-                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm font-medium"&gt;
-                        &lt;span class="px-2 py-1 rounded text-white ${
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span class="px-2 py-1 rounded text-white ${
                             p.predicted_class === 'X' ? 'bg-red-600' :
                             p.predicted_class === 'M' ? 'bg-orange-500' :
                             p.predicted_class === 'C' ? 'bg-yellow-500' :
                             p.predicted_class === 'B' ? 'bg-blue-500' : 'bg-green-500'
-                        }"&gt;
+                        }">
                             ${p.predicted_class}
-                        &lt;/span&gt;
-                    &lt;/td&gt;
-                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"&gt;
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${(p.flare_probability * 100).toFixed(1)}%
-                    &lt;/td&gt;
-                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"&gt;
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${(p.x_class_probability * 100).toFixed(1)}%
-                    &lt;/td&gt;
-                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"&gt;
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${(p.cme_probability * 100).toFixed(1)}%
-                    &lt;/td&gt;
-                &lt;/tr&gt;
+                    </td>
+                </tr>
             `).join('');
         }
 
@@ -474,6 +473,6 @@
 
         // Update every 30 seconds
         setInterval(updateDashboard, 30000);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+    </script>
+</body>
+</html>
