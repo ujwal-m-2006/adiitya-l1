@@ -515,8 +515,8 @@ class NOAAFallback:
             dFdt = (vals[-1] - vals[-10]) / 10 if len(vals) >= 10 else 0.0
             d2Fdt2 = (vals[-1] - 2*vals[-5] + vals[-10]) / 25 if len(vals) >= 10 else 0.0
             return {
-                "timeseries": vals[-120:],   # Last 2h at 1-min cadence
-                "timestamps": ts[-120:],
+                "timeseries": vals,  # ALL available data from NOAA endpoint
+                "timestamps": ts,
                 "latest":     latest,
                 "peak_60min": max(vals[-60:]) if len(vals) >= 60 else peak,
                 "mean":       mean,
