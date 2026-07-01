@@ -97,7 +97,10 @@ def format_prediction_from_report(report):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    index_file = template_dir / "index.html"
+    with open(index_file, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    return app.response_class(html_content, mimetype="text/html")
 
 
 @app.route('/hello')

@@ -5,3 +5,4 @@ logs/
 __pycache__/
 *.pyc
 .pipeline_state.json
+dashboard/test_template.py
